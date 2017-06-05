@@ -1,0 +1,8 @@
+## Interface: 30300
+## Title: |cFFCA153BAgi|r's Dis It
+## Version: 1.0.0
+## Author: Agita (Yvonne P.)
+## Notes: Half automatic disenchant bot
+## Notes-deDE: Halb-automatischer Entzauberungs-Bot
+
+AgisDisit.lua
