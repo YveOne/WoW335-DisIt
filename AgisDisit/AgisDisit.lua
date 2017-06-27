@@ -17,6 +17,8 @@ local UnitAffectingCombat, UnitCastingInfo, UnitIsDead = UnitAffectingCombat, Un
 
 local CloseNextLoot = false
 local SpellNameDE = GetSpellInfo(13262)
+local failedItems = {}
+local dissingItemID = nil
 
 -----------------------------------------------------------------------------------
 
@@ -30,7 +32,10 @@ local function findItemID()
                 if ( itemRarity == 2 or itemRarity == 3 ) then
                     if ( equipLoc ~= "" and sellPrice > 0 ) then
                         itemID, _ = strmatch(itemLink, "item%:(%d+)%:.+%[(.-)%]")
-                        return itemID + 0
+                        itemID = itemID + 0
+                        if ( not failedItems[itemID] ) then
+                            return itemID
+                        end
                     end
                 end
             end
@@ -62,9 +67,22 @@ end
 local EventHandlers = {}
 -----------------------------------------------------------------------------------
 
+function EventHandlers:UNIT_SPELLCAST_FAILED(unitID, spell)
+    if ( unitID == "player" and spell == SpellNameDE ) then
+        failedItems[dissingItemID] = 1
+        dissingItemID = nil
+    end
+end
+
+
+
+
+
+
 function EventHandlers:UNIT_SPELLCAST_SUCCEEDED(unitID, spell)
     if ( unitID == "player" and spell == SpellNameDE ) then
         CloseNextLoot = true
+        dissingItemID = nil
     end
 end
 
@@ -110,10 +128,10 @@ SlashCmdList["AGIDISIT"] = function()
     if ( IsFlying() or IsFalling() or UnitAffectingCombat("player") or UnitCastingInfo("player") or UnitIsDead("player") ) then
         print("Cant disit right now")
     else
-        local itemID = findItemID()
-        if ( itemID ) then
-            macroBody = macroBody .. "\n/use " .. SpellNameDE .. "\n/use item:" .. itemID .. "\n/dised " .. macroID
-            local itemName, itemLink = GetItemInfo(itemID)
+        dissingItemID = findItemID()
+        if ( dissingItemID ) then
+            macroBody = macroBody .. "\n/use " .. SpellNameDE .. "\n/use item:" .. dissingItemID .. "\n/dised " .. macroID
+            local itemName, itemLink = GetItemInfo(dissingItemID)
             print("DISENCHANTING "..itemLink)
         else
             print("no items found for disenchanting")
